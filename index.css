@@ -1,0 +1,276 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    background: #f5f7fb;
+}
+
+/* Vercel Toast Hide */
+.vercel-toast {
+    display: none !important;
+}
+
+/* Custom Animations for Chat & UI */
+@keyframes glow {
+    0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 10px rgba(255, 215, 0, 0.5); }
+    100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+}
+
+.animate-glow {
+    animation: glow 2s infinite;
+}
+
+/* Hide scrollbar for clean UI */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Dark Mode - Fully Black (AMOLED) */
+.dark-mode {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+.dark-mode .bg-white {
+    background-color: #000000 !important;
+    border-color: #333333 !important;
+}
+
+.dark-mode .bg-slate-50, 
+.dark-mode .bg-slate-100 {
+    background-color: #111111 !important;
+    border-color: #333333 !important;
+}
+
+.dark-mode .text-slate-900,
+.dark-mode .text-slate-800,
+.dark-mode .text-slate-700,
+.dark-mode .text-slate-600 {
+    color: #e2e8f0 !important;
+}
+
+.dark-mode .text-slate-500,
+.dark-mode .text-slate-400 {
+    color: #94a3b8 !important;
+}
+
+/* Ensure inputs are visible */
+.dark-mode input, 
+.dark-mode select, 
+.dark-mode textarea {
+    background-color: #222222 !important;
+    color: #ffffff !important;
+    border-color: #444444 !important;
+}
+
+/* Dialogs & Modals */
+.dark-mode .bg-white.rounded-2xl,
+.dark-mode .bg-white.rounded-3xl {
+    background-color: #111111 !important;
+    border: 1px solid #333333 !important;
+}
+
+/* Shadows */
+.dark-mode .shadow-sm,
+.dark-mode .shadow-md,
+.dark-mode .shadow-lg,
+.dark-mode .shadow-xl,
+.dark-mode .shadow-2xl {
+    box-shadow: none !important;
+    border: 1px solid #333333 !important;
+}
+
+/* GLOBAL UI STABILITY FIXES */
+body {
+  background-color: #0f1a3a; /* Dark premium background to act as 'letterboxing' on desktop */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Ensure it starts at the top */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  width: 100%;
+  max-width: 1080px; /* Enhanced Mobile/Tablet maximum width for better readability */
+  min-height: 100vh;
+  background-color: #f8fafc; /* Keep the app's actual light background isolated */
+  box-shadow: 0 0 50px rgba(0,0,0,0.5); /* Strong shadow for separation */
+  position: relative;
+  overflow-x: hidden;
+  /* Prevent any absolute children from escaping the box */
+  margin: 0 auto;
+}
+
+/* Override body classes from index.html if necessary to stop background bleed */
+.bg-slate-50 {
+    background-color: transparent !important;
+}
+
+button {
+  cursor: pointer;
+  white-space: normal; /* Force wrapping */
+  overflow-wrap: break-word; /* Prevent overflow */
+}
+
+/* Prevent layout shifts */
+.min-h-screen {
+  min-height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  /* Do NOT set background-color here, rely on #root */
+}
+
+.dark-mode .min-h-screen, .dark-mode body {
+  background-color: #000000 !important;
+}
+
+/* App Logo Watermark positioning */
+.app-watermark {
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* App Container and Reading Constraints */
+.app-container {
+  max-width: 720px;
+  margin: auto;
+  padding: 16px;
+}
+
+.reading-mode {
+  max-width: 600px;
+  margin: auto;
+  line-height: 1.7;
+}
+
+.note-text {
+  max-width: 60ch;
+}
+
+/* Base Typography overrides to prevent cramped text */
+.markdown-body h1, .prose h1 {
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  margin-bottom: 16px !important;
+  color: #0f172a;
+}
+
+.markdown-body h2, .prose h2 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  margin-top: 24px !important;
+  margin-bottom: 12px !important;
+  color: #1e293b;
+}
+
+.markdown-body p, .prose p, .note-text p {
+  font-size: 16px !important;
+  line-height: 1.7 !important;
+  margin-bottom: 16px !important;
+  color: #334155;
+}
+
+.markdown-body strong, .prose strong {
+  font-weight: 700 !important;
+  color: #0f172a;
+}
+
+.small-text {
+  font-size: 14px;
+}
+
+/* Quick Revision Custom Styles */
+.topic-card {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+}
+
+.note-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+/* Base style for specific note types so they inherit the note-section styling */
+.definition, .example, .exam, .mistake, .memory {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  margin-top: 10px;
+}
+
+.definition {
+  background: #e0f2fe; /* light blue */
+  border-left: 4px solid #3b82f6;
+}
+
+.topic-card {
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+}
+
+.topic-card h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.topic-card div {
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
+.visual-facts ul,
+.recap ul {
+  padding-left: 20px;
+}
+
+.example {
+  background: #dcfce7; /* light green */
+  border-left: 4px solid #22c55e;
+}
+
+.exam {
+  background: #eaf5ff;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.quick-revision {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+  font-weight: 500;
+}
+
+.mistake {
+  background: #ffecec;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.memory {
+  background: #f1fff2;
+  padding: 10px;
+  border-radius: 8px;
+}

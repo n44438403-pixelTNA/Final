@@ -1,0 +1,209 @@
+FIREBASE FIRESTORE SECURITY RULES
+==================================
+
+🔐 Copy these rules to Firebase Console > Firestore Database > Rules tab and publish
+
+---
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============= HELPER FUNCTIONS =============
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'SUB_ADMIN'];
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Check if user trying to modify is not changing their own credits/subscription maliciously
+    function creditsUnchanged() {
+      return !('credits' in request.resource.data) || request.resource.data.credits == resource.data.credits;
+    }
+    
+    function subscriptionUnchanged() {
+      return !('subscriptions' in request.resource.data) || request.resource.data.subscriptions == resource.data.subscriptions;
+    }
+    
+    function isPremiumLevelUnchanged() {
+      return !('isPremium' in request.resource.data) || request.resource.data.isPremium == resource.data.isPremium;
+    }
+    
+    // ============= USERS COLLECTION =============
+    // Stores user profile info, credits, subscriptions, role
+    match /users/{userId} {
+      // Allow users to read only their own profile
+      allow read: if isSignedIn() && isOwner(userId);
+      
+      // Allow users to write only to their own profile
+      allow write: if isSignedIn() && isOwner(userId) && 
+                      creditsUnchanged() &&           // 🔒 Prevent credit tampering
+                      subscriptionUnchanged() &&      // 🔒 Prevent subscription tampering
+                      isPremiumLevelUnchanged() &&    // 🔒 Prevent premium flag tampering
+                      !('role' in request.resource.data);  // 🔒 Prevent role escalation
+      
+      // Allow admin to read all users
+      allow read: if isAdmin();
+      
+      // Allow admin to modify users (for support/management)
+      allow write: if isAdmin() && request.resource.data.role in ['STUDENT', 'ADMIN', 'SUB_ADMIN'];
+      
+      // Subcollections: history and test_results
+      match /history/{docId} {
+        allow read: if isSignedIn() && isOwner(userId);
+        allow create: if isSignedIn() && isOwner(userId);
+        allow update, delete: if isSignedIn() && isOwner(userId);
+        allow read: if isAdmin();
+      }
+      
+      match /test_results/{docId} {
+        allow read: if isSignedIn() && isOwner(userId);
+        allow create: if isSignedIn() && isOwner(userId);
+        allow update, delete: if isSignedIn() && isOwner(userId);
+        allow read: if isAdmin();
+      }
+    }
+    
+    // ============= USER_DATA COLLECTION =============
+    // Stores bulky user data: mcqHistory, usageHistory, progress, testResults, inbox
+    match /user_data/{userId} {
+      allow read: if isSignedIn() && isOwner(userId);
+      allow write: if isSignedIn() && isOwner(userId);
+      allow read, write: if isAdmin();
+    }
+    
+    // ============= CONTENT_DATA COLLECTION =============
+    // Stores lesson content, chapters, videos, PDFs, MCQs
+    match /content_data/{contentId} {
+      // All authenticated users can read content
+      allow read: if isSignedIn();
+      
+      // Only admins can create/modify/delete content
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ============= CUSTOM_SYLLABUS COLLECTION =============
+    // Stores custom syllabi created by admins
+    match /custom_syllabus/{syllabusId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // ============= PUBLIC_ACTIVITY COLLECTION =============
+    // Stores public activity feed (quiz results, achievements)
+    match /public_activity/{activityId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || isOwner(resource.data.userId);
+    }
+    
+    // ============= AI_INTERACTIONS COLLECTION =============
+    // Stores AI chat history and interactions
+    match /ai_interactions/{interactionId} {
+      allow read: if isSignedIn() && isOwner(resource.data.userId);
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || isOwner(resource.data.userId);
+      allow read: if isAdmin();  // Admins can view all AI interactions for moderation
+    }
+    
+    // ============= UNIVERSAL_ANALYSIS_LOGS COLLECTION =============
+    // Stores analysis logs
+    match /universal_analysis_logs/{logId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // ============= CONFIG COLLECTION =============
+    // System settings, app configuration
+    match /config/{configId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // ============= ADMIN_STATS COLLECTION =============
+    // Admin statistics and analytics - RESTRICTED
+    match /admin_stats/{statId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // ============= DEFAULT DENY =============
+    // Deny access to any collection not explicitly defined above
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+---
+
+🔐 KEY SECURITY FEATURES:
+1. ✅ Users can only read/write their own data
+2. ✅ Credits and subscriptions are protected from client-side manipulation
+3. ✅ Role escalation is prevented (users cannot change their role)
+4. ✅ Content can only be created/modified by admins
+5. ✅ Admin data is completely restricted to admins only
+6. ✅ All unauthenticated access is denied
+7. ✅ Default deny policy for unknown collections
+
+---
+
+📋 HOW TO APPLY THESE RULES:
+1. Go to Firebase Console: https://console.firebase.google.com/
+2. Select your project (iic-adf79)
+3. Go to Firestore Database > Rules tab
+4. Replace the existing rules with the rules above
+5. Click "Publish"
+
+---
+
+⚠️ TESTING THE RULES:
+After publishing:
+1. Test that users can still login and see their data
+2. Test that users CANNOT change their own credits (security rule will prevent it)
+3. Test that admins can manage users and content
+4. Check browser console for "permission-denied" errors - those are now EXPECTED and GOOD (they block hacking attempts)
+
+---
+
+🚨 IF USERS GET "PERMISSION DENIED" ERRORS:
+This is expected behavior when:
+- User tries to modify credits/subscriptions directly
+- Non-admin tries to modify content
+- User tries to read another user's private data
+
+If legitimate users get these errors, it means the app code is trying to do something it shouldn't, and you need to fix the app logic (not the rules).
+
+---
+
+📱 FOR REALTIME DATABASE (Optional):
+If you also use Realtime Database, apply similar rules:
+
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid || root.child('users').child($uid).child('role').val() === 'ADMIN'",
+        ".write": "$uid === auth.uid || root.child('users').child($uid).child('role').val() === 'ADMIN'",
+        "credits": { ".write": false },
+        "subscriptions": { ".write": false },
+        "isPremium": { ".write": false }
+      }
+    },
+    "content_data": {
+      ".read": "auth !== null",
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'ADMIN'"
+    },
+    "admin_stats": {
+      ".read": "root.child('users').child(auth.uid).child('role').val() === 'ADMIN'",
+      ".write": "root.child('users').child(auth.uid).child('role').val() === 'ADMIN'"
+    },
+    ".read": false,
+    ".write": false
+  }
+}

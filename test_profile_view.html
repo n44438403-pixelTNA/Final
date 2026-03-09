@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Profile View</title>
+  <!-- Simulating mobile viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 p-8">
+    <div class="animate-in fade-in zoom-in duration-300 pb-24">
+        <div class="rounded-3xl p-8 text-center text-slate-800 mb-6 shadow-sm border border-slate-200 relative overflow-hidden transition-all duration-500 bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 text-white shadow-blue-900/20 ring-2 ring-blue-500/50">
+            <!-- ANIMATED BACKGROUND FOR ULTRA -->
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-spin-slow mix-blend-overlay"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+            <div class="absolute -top-20 -right-20 w-64 h-64 bg-blue-500/30 rounded-full blur-3xl animate-pulse"></div>
+
+            <div class="absolute top-2 left-2 animate-pulse">
+                <span class="bg-gradient-to-r from-blue-400 to-blue-600 text-white px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase border border-blue-400 shadow-md flex items-center gap-1">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                    </span>
+                    ULTRA
+                </span>
+            </div>
+
+            <div class="absolute top-2 right-2 animate-bounce">
+                <span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold border border-white/30">
+                    30 DAYS
+                </span>
+            </div>
+
+            <!-- Profile Picture With Upload Hover State simulation -->
+            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-4 text-4xl font-black shadow-2xl relative z-10 group overflow-hidden text-blue-700 ring-4 ring-blue-400">
+                A
+                <div class="absolute -top-2 -right-2 text-2xl drop-shadow-lg">👑</div>
+
+                <!-- Hidden File Input & Overlay (Simulated Hover State) -->
+                <label class="absolute inset-0 bg-black/50 flex items-center justify-center cursor-pointer transition-opacity text-white text-xs text-center font-bold">
+                    Change<br/>Photo
+                </label>
+            </div>
+
+            <div class="flex items-center justify-center gap-2 relative z-10 mt-2">
+                <h2 class="text-3xl font-black text-white">Anwar</h2>
+            </div>
+            <p class="text-sm font-mono relative z-10 flex justify-center items-center gap-2 text-white/80">
+                ID: nsta-user-123
+            </p>
+
+            <div class="mt-4 relative z-10">
+                <span class="px-6 py-2 rounded-full text-sm font-black uppercase tracking-widest shadow-lg shadow-black/10 border-2 bg-gradient-to-r from-blue-400 to-blue-600 text-white border-blue-300">
+                    ULTRA
+                </span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

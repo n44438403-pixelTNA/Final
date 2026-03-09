@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Notes View</title>
+  <!-- Simulating mobile viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {}
+      },
+      plugins: [
+        require('@tailwindcss/typography'),
+      ],
+    }
+  </script>
+</head>
+<body class="bg-slate-50">
+    <div class="fixed inset-0 z-[9999] bg-slate-50 flex flex-col animate-in fade-in zoom-in-95 h-screen w-screen overflow-hidden">
+        <!-- Minimal Floating Controls -->
+        <div class="absolute top-4 left-4 z-50 flex gap-4">
+            <button class="bg-white/80 backdrop-blur-md text-slate-800 p-3 rounded-full hover:bg-white shadow-lg border border-slate-200">
+                &lt;
+            </button>
+            <button class="bg-white/80 backdrop-blur-md p-3 rounded-full hover:bg-white border border-slate-200 shadow-lg text-slate-800">
+                O
+            </button>
+        </div>
+
+        <div class="flex-1 relative flex flex-col w-full h-full">
+            <div class="flex-1 overflow-y-auto p-2 md:p-8 bg-slate-50">
+                <div class="max-w-full md:max-w-4xl w-full mx-auto pt-16 pb-20">
+                    <div class="bg-white rounded-xl md:rounded-3xl p-5 md:p-10 shadow-sm border border-slate-200/60">
+                        <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-8 pb-6 border-b-2 border-slate-100 leading-snug">Cell Structure and Functions</h1>
+                        <div class="prose prose-slate prose-lg md:prose-xl max-w-none leading-[1.9] text-[18px] md:text-[20px] text-slate-800 marker:text-blue-500 prose-headings:text-slate-900 prose-headings:font-extrabold prose-a:text-blue-600 prose-p:mb-8 prose-ul:mb-8 prose-li:my-3">
+                            <p>Cells are the basic structural, functional, and biological units of all known organisms. This is a longer paragraph to demonstrate the leading-loose typography adjustments that were made to ensure the document looks very professional.</p>
+                            <h3>Key Points</h3>
+                            <ul>
+                                <li>Nucleus - The control center of the cell</li>
+                                <li>Mitochondria - The powerhouse of the cell</li>
+                                <li>Ribosomes - The protein factories</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

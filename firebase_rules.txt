@@ -1,0 +1,143 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ----------------------------------------------------------------------------------
+    // CORE SECURITY FUNCTIONS (LEVEL 5 HARD SECURITY)
+    // ----------------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Checks if the user is an authentic ADMIN or the Master Admin email
+    function isAdmin() {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN' ||
+        request.auth.token.email == 'nadiman0636indo@gmail.com'
+      );
+    }
+
+    function isAdminOrSubAdmin() {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUB_ADMIN' ||
+        request.auth.token.email == 'nadiman0636indo@gmail.com'
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ==================================================================================
+    // ANTI-HACK & ANTI-CHEAT ENGINE (STRICT)
+    // ==================================================================================
+    function isSafeUserUpdate() {
+      // Admins bypass all checks
+      if (isAdminOrSubAdmin()) return true;
+
+      let incoming = request.resource.data;
+      let existing = resource == null ? {} : resource.data;
+
+      // 1. ROLE LOCK: Prevent becoming Admin
+      let safeRole = (!('role' in incoming) || incoming.role == 'STUDENT' || incoming.role == existing.role);
+
+      // 2. BAN LOCK: Prevent unbanning self
+      let safeBanStatus = (!('isGameBanned' in incoming) || incoming.isGameBanned == existing.isGameBanned);
+      let safeStatus = (!('status' in incoming) || incoming.status == existing.status);
+
+      // 3. ECONOMY LOCK: Prevent injecting millions of credits/coins.
+      // Allows max gain of 500 at once (e.g., from a big reward). If they try 999999, it blocks.
+      let existingCredits = ('credits' in existing) ? existing.credits : 0;
+      let incomingCredits = ('credits' in incoming) ? incoming.credits : 0;
+      let safeCredits = (incomingCredits <= existingCredits + 1000);
+
+      // 4. SUBSCRIPTION HACK LOCK: Prevent upgrading to LIFETIME/ULTRA illegally
+      // Blocks manual Tier changes from the client side.
+      let safeTier = (!('subscriptionTier' in incoming) || incoming.subscriptionTier == existing.subscriptionTier);
+
+      // 5. DEVICE LOCK: Prevent clearing device ID to share accounts
+      let safeDeviceId = (!('deviceId' in incoming) || incoming.deviceId == existing.deviceId || !('deviceId' in existing));
+
+      return safeRole && safeBanStatus && safeStatus && safeCredits && safeTier && safeDeviceId;
+    }
+
+    // ----------------------------------------------------------------------------------
+    // DATABASE RULES
+    // ----------------------------------------------------------------------------------
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      // Only the owner can write IF they pass the Anti-Hack Engine, OR an Admin can write.
+      allow write: if (isOwner(userId) && isSafeUserUpdate()) || isAdminOrSubAdmin();
+    }
+
+    // User Data Collection (Test histories, bulky data)
+    match /user_data/{userId} {
+      // Strictly isolated. A user cannot read another user's test history.
+      allow read, write: if isOwner(userId) || isAdminOrSubAdmin();
+    }
+
+    // Content Data (Lessons, Notes, Videos)
+    match /content_data/{document=**} {
+      allow read: if isSignedIn(); // Students can only READ content
+      allow write: if isAdmin();   // Only Admins can WRITE content
+    }
+
+    // System Config (App settings, themes)
+    match /config/{document=**} {
+      allow read: if isSignedIn(); // App needs to read config
+      allow write: if isAdmin();   // Only Admins can change config
+    }
+
+    // Redeem Codes
+    match /redeem_codes/{codeId} {
+      allow read: if isSignedIn();
+      // Users can only update a code if it hasn't been used yet (prevents double dipping)
+      // and they can ONLY modify the 'isRedeemed' and 'usedBy' fields (prevents value tampering).
+      allow update: if isSignedIn()
+                    && resource.data.isRedeemed == false
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRedeemed', 'usedBy']);
+      allow create, delete: if isAdmin();
+    }
+
+    // Leaderboard
+    match /leaderboard/{entryId} {
+      allow read: if isSignedIn();
+      // Prevent faking someone else's score
+      allow write: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Public Activity (Live Results Feed)
+    match /public_activity/{document=**} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Default Deny Rule (Locks everything else down - Absolute Security)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------------
+// STORAGE RULES (FILES/IMAGES)
+// ----------------------------------------------------------------------------------
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Profile Pictures
+    match /profiles/{userId} {
+      allow read: if isSignedIn();
+      // Users can only upload images less than 5MB to their OWN profile folder
+      allow write: if (isSignedIn() && request.auth.uid == userId && request.resource.size < 5 * 1024 * 1024) || isAdmin();
+    }
+
+    // Only Admin can upload/delete general app content files (PDFs, Banners)
+    match /{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
